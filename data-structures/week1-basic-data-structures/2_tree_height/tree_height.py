@@ -3,6 +3,7 @@
 import sys
 import threading
 
+# TODO: simplify by assigning a level to each node while doing the breadth-wise search
 
 class Node:
     def __init__(self, key):
