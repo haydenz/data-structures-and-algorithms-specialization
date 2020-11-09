@@ -21,9 +21,9 @@ class Heap:
         else:
             return 2*(i+1)
 
-    def __parent(self, i)
+    def __parent(self, i):
         if i != 0:
-            return (i + i%2) / 2 - 1
+            return int((i + i%2) / 2 - 1)
         else:
             return i
 
@@ -40,7 +40,7 @@ class Heap:
             self.shift_down(min_idx)
         
     def shift_up(self):
-        for i in range(self.size, 0, -1):
+        for i in range(self.size-1, 0, -1):
             p = self.__parent(i)
             l = self.__left_child(p)
             r = self.__right_child(p)
@@ -49,11 +49,9 @@ class Heap:
                     self.heap[l], self.heap[r] = self.heap[r], self.heap[l]
                 if self.heap[p][0] == self.heap[l][0] and self.heap[p][1] > self.heap[l][1]:
                     self.heap[l], self.heap[p] = self.heap[p], self.heap[l]
-                    
-            if self.heap[p][0] == self.heap[min_thread][0]:
-                if self.heap[p][1] > self.heap[min_thread][1]:
-                    min_thread = p
 
+            if self.heap[p][0] == self.heap[i][0] and self.heap[p][1] > self.heap[i][1]:
+                    self.heap[i], self.heap[p] = self.heap[p], self.heap[i]
 
     def extract_min(self):
         return self.heap[0]
@@ -73,7 +71,7 @@ def efficient_parallel(n_workers, jobs):
         latest_time, latest_thread = heap.extract_min()
         heap.insert(latest_time + jobs[i])
         heap.shift_down(0)
-        heap.swap_thread()
+        heap.shift_up()
 
         result.append(AssignedJob(latest_thread, latest_time))
     return result
@@ -90,10 +88,10 @@ def assign_jobs(n_workers, jobs):
     return result
 
 def main():
-    # n_workers, n_jobs = map(int, input().split())
-    n_workers, n_jobs = 4, 20
-    # jobs = list(map(int, input().split()))
-    jobs = [1] * 20
+    n_workers, n_jobs = map(int, input().split())
+    # n_workers, n_jobs = 4, 20
+    jobs = list(map(int, input().split()))
+    # jobs = [1] * 20
     assert len(jobs) == n_jobs
 
     assigned_jobs = efficient_parallel(n_workers, jobs)
