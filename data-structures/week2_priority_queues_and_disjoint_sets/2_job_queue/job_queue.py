@@ -31,27 +31,42 @@ class Heap:
         min_idx = i
         l = self.__left_child(i)
         r = self.__right_child(i)
-        if l <= len(self.heap) - 1 and self.heap[l][0] < self.heap[min_idx][0]:
+        if self.heap[l][0] < self.heap[min_idx][0]:
             min_idx = l
-        if r <= len(self.heap) - 1 and self.heap[r][0] < self.heap[min_idx][0]:
+        if self.heap[r][0] < self.heap[min_idx][0]:
             min_idx = r
+
         if i != min_idx:
             self.heap[i], self.heap[min_idx] = self.heap[min_idx], self.heap[i]
             self.shift_down(min_idx)
         
     def shift_up(self):
-        for i in range(self.size-1, 0, -1):
+        for i in range(self.size // 2, -1, -1):
             p = self.__parent(i)
-            l = self.__left_child(p)
-            r = self.__right_child(p)
-            if self.heap[l][0] == self.heap[r][0]:
-                if self.heap[l][1] > self.heap[r][1]:
-                    self.heap[l], self.heap[r] = self.heap[r], self.heap[l]
-                if self.heap[p][0] == self.heap[l][0] and self.heap[p][1] > self.heap[l][1]:
-                    self.heap[l], self.heap[p] = self.heap[p], self.heap[l]
+            l = self.__left_child(i)
+            r = self.__right_child(i)
+            if i != 0:
+                s = self.__left_child(p) if self.__right_child(p) == i else self.__right_child(p)
+            else:
+                s = 0
 
-            if self.heap[p][0] == self.heap[i][0] and self.heap[p][1] > self.heap[i][1]:
-                    self.heap[i], self.heap[p] = self.heap[p], self.heap[i]
+            # Children: Shift right to left
+            if self.heap[l][0] == self.heap[r][0] and self.heap[l][1] > self.heap[r][1]:
+                    self.heap[l], self.heap[r] = self.heap[r], self.heap[l]
+
+            if self.heap[i][0] == self.heap[l][0] and self.heap[i][1] > self.heap[l][1]:
+                self.heap[i], self.heap[l] = self.heap[l], self.heap[i]
+
+            # Siblings
+            if s != 0:
+                if self.__left_child(p) == i and self.heap[i][0] == self.heap[s][0] and self.heap[i][1] > self.heap[s][1]:
+                    self.heap[i], self.heap[s] = self.heap[s], self.heap[i]
+                if self.__right_child(p) == i and self.heap[i][0] == self.heap[s][0] and self.heap[i][1] < self.heap[s][1]:
+                    self.heap[i], self.heap[s] = self.heap[s], self.heap[i]
+
+            # Parent
+            if self.heap[p][0] == self.heap[self.__left_child(p)][0] and self.heap[self.__left_child(p)][1] < self.heap[p][1]:
+                self.heap[self.__left_child(p)], self.heap[p] = self.heap[p], self.heap[self.__left_child(p)]
 
     def extract_min(self):
         return self.heap[0]
@@ -89,9 +104,10 @@ def assign_jobs(n_workers, jobs):
 
 def main():
     n_workers, n_jobs = map(int, input().split())
-    # n_workers, n_jobs = 4, 20
+    # n_workers, n_jobs = 10, 100
     jobs = list(map(int, input().split()))
-    # jobs = [1] * 20
+    # tmp = '124860658 388437511 753484620 349021732 311346104 235543106 665655446 28787989 706718118 409836312 217716719 757274700 609723717 880970735 972393187 246159983 318988174 209495228 854708169 945600937 773832664 587887000 531713892 734781348 603087775 148283412 195634719 968633747 697254794 304163856 554172907 197744495 261204530 641309055 773073192 463418708 59676768 16042361 210106931 901997880 220470855 647104348 163515452 27308711 836338869 505101921 397086591 126041010 704685424 48832532 944295743 840261083 407178084 723373230 242749954 62738878 445028313 734727516 370425459 607137327 541789278 281002380 548695538 651178045 638430458 981678371 648753077 417312222 446493640 201544143 293197772 298610124 31821879 46071794 509690783 183827382 867731980 524516363 376504571 748818121 36366377 404131214 128632009 535716196 470711551 19833703 516847878 422344417 453049973 58419678 175133498 967886806 49897195 188342011 272087192 798530288 210486166 836411405 909200386 561566778'
+    # jobs = [int(j) for j in tmp.split(' ')]
     assert len(jobs) == n_jobs
 
     assigned_jobs = efficient_parallel(n_workers, jobs)
