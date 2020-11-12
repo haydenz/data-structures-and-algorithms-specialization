@@ -21,53 +21,22 @@ class Heap:
         else:
             return 2*(i+1)
 
-    def __parent(self, i):
-        if i != 0:
-            return int((i + i%2) / 2 - 1)
-        else:
-            return i
-
-    def shift_down(self, i):
+    def __shift_down(self, i):
         min_idx = i
         l = self.__left_child(i)
         r = self.__right_child(i)
-        if self.heap[l][0] < self.heap[min_idx][0]:
+        if (self.heap[l][0] < self.heap[min_idx][0]) or (self.heap[l][0] == self.heap[min_idx][0] and self.heap[l][1] < self.heap[min_idx][1]):
             min_idx = l
-        if self.heap[r][0] < self.heap[min_idx][0]:
+        if (self.heap[r][0] < self.heap[min_idx][0]) or (self.heap[r][0] == self.heap[min_idx][0] and self.heap[r][1] < self.heap[min_idx][1]):
             min_idx = r
 
         if i != min_idx:
             self.heap[i], self.heap[min_idx] = self.heap[min_idx], self.heap[i]
-            self.shift_down(min_idx)
+            self.__shift_down(min_idx)
+    
+    def build_heap(self):
+        self.__shift_down(0)
         
-    def shift_up(self):
-        for i in range(self.size // 2, -1, -1):
-            p = self.__parent(i)
-            l = self.__left_child(i)
-            r = self.__right_child(i)
-            if i != 0:
-                s = self.__left_child(p) if self.__right_child(p) == i else self.__right_child(p)
-            else:
-                s = 0
-
-            # Children: Shift right to left
-            if self.heap[l][0] == self.heap[r][0] and self.heap[l][1] > self.heap[r][1]:
-                    self.heap[l], self.heap[r] = self.heap[r], self.heap[l]
-
-            if self.heap[i][0] == self.heap[l][0] and self.heap[i][1] > self.heap[l][1]:
-                self.heap[i], self.heap[l] = self.heap[l], self.heap[i]
-
-            # Siblings
-            if s != 0:
-                if self.__left_child(p) == i and self.heap[i][0] == self.heap[s][0] and self.heap[i][1] > self.heap[s][1]:
-                    self.heap[i], self.heap[s] = self.heap[s], self.heap[i]
-                if self.__right_child(p) == i and self.heap[i][0] == self.heap[s][0] and self.heap[i][1] < self.heap[s][1]:
-                    self.heap[i], self.heap[s] = self.heap[s], self.heap[i]
-
-            # Parent
-            if self.heap[p][0] == self.heap[self.__left_child(p)][0] and self.heap[self.__left_child(p)][1] < self.heap[p][1]:
-                self.heap[self.__left_child(p)], self.heap[p] = self.heap[p], self.heap[self.__left_child(p)]
-
     def extract_min(self):
         return self.heap[0]
 
@@ -85,8 +54,7 @@ def efficient_parallel(n_workers, jobs):
     for i in range(len(jobs)):
         latest_time, latest_thread = heap.extract_min()
         heap.insert(latest_time + jobs[i])
-        heap.shift_down(0)
-        heap.shift_up()
+        heap.build_heap()
 
         result.append(AssignedJob(latest_thread, latest_time))
     return result
