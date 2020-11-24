@@ -19,13 +19,21 @@ def process_queries(queries):
     result = []
     # Keep list of all existing (i.e. not deleted yet) contacts.
     contacts = [-1] * 10000000
+    numbers = dict()
     for cur_query in queries:
         if cur_query.type == 'add':
             # if we already have contact with such number,
             # we should rewrite contact's name
-            if cur_query.name == contacts[cur_query.number]:
-                break
+            
+            if contacts[cur_query.number] in numbers:
+                if cur_query.number == numbers[contacts[cur_query.number]]:
+                    numbers[cur_query.name] = numbers.pop(contacts[cur_query.number])
+                    contacts[cur_query.number] = cur_query.name
+                    # break
+                else:
+                    contacts[cur_query.number] = cur_query.name
             else:
+                numbers.update({cur_query.name: cur_query.number})
                 contacts[cur_query.number] = cur_query.name
             # for contact in contacts:
             #     if contact.number == cur_query.number:
@@ -55,4 +63,3 @@ def process_queries(queries):
 
 if __name__ == '__main__':
     write_responses(process_queries(read_queries()))
-
