@@ -40,7 +40,10 @@ class QueryProcessor:
         print('yes' if was_found else 'no')
 
     def write_chain(self, chain):
-        print(' '.join(chain))
+        if len(chain) != 0:
+            print(' '.join(reversed(chain)))
+        else:
+            print('')
 
     def read_query(self):
         return Query(input().split())
@@ -68,9 +71,9 @@ class QueryProcessor:
                 if ind == -1:
                     hash_idx = self._hash_func(query.s)
                     self.elems[hash_idx].append(query.s)
-            else:
+            else: # query.type == 'del'
                 if ind != -1:
-                    self.elems.pop(ind)
+                    self.elems[ind].remove(query.s)
 
     def process_queries(self):
         n = int(input())
