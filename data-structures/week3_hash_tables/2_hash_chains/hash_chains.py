@@ -28,7 +28,8 @@ class QueryProcessor:
     def __init__(self, bucket_count):
         self.bucket_count = bucket_count
         # store all strings in one list
-        self.elems = [[]] * bucket_count
+        self.elems = [[] for _ in range(bucket_count)]
+        self.hashes = dict()
 
     def _hash_func(self, s):
         ans = 0
@@ -59,11 +60,15 @@ class QueryProcessor:
             #     ind = self.elems.index(query.s)
             # except ValueError:
             #     ind = -1
-            exist = [query.s in l for l in self.elems]
-            if any(exist):
-                ind = exist.index(True)
-            else:
+            try:
+                ind = self.hashes[query.s]
+            except KeyError:
                 ind = -1
+            # exist = [query.s in l for l in self.elems]
+            # if any(exist):
+            #     ind = exist.index(True)
+            # else:
+            #     ind = -1
 
             if query.type == 'find':
                 self.write_search_result(ind != -1)
@@ -71,16 +76,25 @@ class QueryProcessor:
                 if ind == -1:
                     hash_idx = self._hash_func(query.s)
                     self.elems[hash_idx].append(query.s)
+                    self.hashes.update({query.s: hash_idx})
             else: # query.type == 'del'
                 if ind != -1:
                     self.elems[ind].remove(query.s)
+                    self.hashes.pop(query.s)
 
     def process_queries(self):
         n = int(input())
+        # n = 12
+        # tmp = [('check',0), ('find', 'help'), ('add', 'help'),
+        #        ('add', 'del'), ('add', 'add'), ('find', 'add'),
+        #        ('find', 'del'), ('del', 'del'), ('find', 'del'),
+        #        ('check', 0), ('check', 1), ('check', 2)]
         for i in range(n):
             self.process_query(self.read_query())
+            # self.process_query(Query(tmp[i]))
 
 if __name__ == '__main__':
     bucket_count = int(input())
+    # bucket_count = 3
     proc = QueryProcessor(bucket_count)
     proc.process_queries()
