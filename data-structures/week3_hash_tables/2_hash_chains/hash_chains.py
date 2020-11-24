@@ -1,5 +1,16 @@
 # python3
 
+''' Hints
+1. Beware of integer overflow. Use long long type in C++ and long type in Java where appropriate. Take
+everything (mod 𝑝) as soon as possible while computing something (mod 𝑝), so that the numbers are
+always between 0 and 𝑝 − 1.
+2. Beware of taking negative numbers (mod 𝑝). In many programming languages, (−2)%5 ̸= 3%5. Thus
+you can compute the same hash values for two strings, but when you compare them, they appear to
+be different. To avoid this issue, you can use such construct in the code: 𝑥 ← ((𝑎%𝑝) + 𝑝)%𝑝 instead
+of just 𝑥 ← 𝑎%𝑝.
+'''
+
+
 class Query:
 
     def __init__(self, query):
@@ -17,12 +28,12 @@ class QueryProcessor:
     def __init__(self, bucket_count):
         self.bucket_count = bucket_count
         # store all strings in one list
-        self.elems = []
+        self.elems = [[]] * bucket_count
 
     def _hash_func(self, s):
         ans = 0
         for c in reversed(s):
-            ans = (ans * self._multiplier + ord(c)) % self._prime
+            ans = (ans * self._multiplier + ord(c)) % self._prime # ord() returns Unicode char
         return ans % self.bucket_count
 
     def write_search_result(self, was_found):
@@ -37,18 +48,26 @@ class QueryProcessor:
     def process_query(self, query):
         if query.type == "check":
             # use reverse order, because we append strings to the end
-            self.write_chain(cur for cur in reversed(self.elems)
-                        if self._hash_func(cur) == query.ind)
+            # self.write_chain(cur for cur in reversed(self.elems) 
+            #             if self._hash_func(cur) == query.ind)
+            self.write_chain(self.elems[query.ind])
         else:
-            try:
-                ind = self.elems.index(query.s)
-            except ValueError:
+            # try:
+            #     ind = self.elems.index(query.s)
+            # except ValueError:
+            #     ind = -1
+            exist = [query.s in l for l in self.elems]
+            if any(exist):
+                ind = exist.index(True)
+            else:
                 ind = -1
+
             if query.type == 'find':
                 self.write_search_result(ind != -1)
             elif query.type == 'add':
                 if ind == -1:
-                    self.elems.append(query.s)
+                    hash_idx = self._hash_func(query.s)
+                    self.elems[hash_idx].append(query.s)
             else:
                 if ind != -1:
                     self.elems.pop(ind)
