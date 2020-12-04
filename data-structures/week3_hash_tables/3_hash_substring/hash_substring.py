@@ -34,7 +34,6 @@ def get_occurrences(pattern, text):
 class RobinKarp:
     _prime = 100000003
     _multiplier = 5
-    _bucket_count = 8
 
     def __init__(self, pattern, text):
         self.text = text
@@ -45,21 +44,21 @@ class RobinKarp:
         # self.result
 
     def precompute_hash(self):
-        str_tmp = self.text[(self.text_len - self.pattern_len):(self.text_len - 1)]
+        str_tmp = self.text[(self.text_len - self.pattern_len):self.text_len]
         self.hash_l[self.text_len - self.pattern_len] = self.poly_hash(str_tmp)
         y = 1
         for i in range(1, self.pattern_len + 1):
             y = (y * self._multiplier) % self._prime
         for i in range(self.text_len - self.pattern_len - 1, -1, -1):
             self.hash_l[i] = (self._multiplier*self.hash_l[i+1]+ord(self.text[i])
-                              -y*ord(self.text[i+self.pattern_len]))%self._prime
+                              -y*ord(self.text[i+self.pattern_len])) % self._prime
    
     def poly_hash(self, s):
         ans = 0
         for c in reversed(s):
             ans = (ans * self._multiplier + ord(c)) % self._prime # ord() returns Unicode char
-        return ans % self._bucket_count
-    
+        return ans
+
     def pattern_recognition(self):
         self.precompute_hash()
         result = []
@@ -68,7 +67,7 @@ class RobinKarp:
             tHash = self.hash_l[i]
             if pHash != tHash:
                 continue
-            if self.pattern == self.text[i:(i+self.pattern_len-1)]:
+            if self.pattern == self.text[i:(i+self.pattern_len)]:
                 result.append(i)
         return result
 
