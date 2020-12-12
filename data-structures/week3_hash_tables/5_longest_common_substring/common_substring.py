@@ -29,10 +29,6 @@ class CommonSubstring:
 		self._prime1 = 1000000007
 		self._prime2 = 1000000009
 		self._multiplier = 113
-		self.hash_s1 = self.hash_string(self.s, self._prime1)
-		self.hash_s2 = self.hash_string(self.s, self._prime2)
-		self.hash_t1 = self.hash_string(self.t, self._prime1)
-		self.hash_t2 = self.hash_string(self.t, self._prime2)
 		self.poly1 = self.precompute_poly(self.len_t + 1, self._prime1)
 		self.poly2 = self.precompute_poly(self.len_t + 1, self._prime2)
 
@@ -48,10 +44,12 @@ class CommonSubstring:
 			right = k
 			# k = (left + right) // 2
 			while k > 0:
-				hash_dict_s1 = self.precompute_hash(k, self.s, self.hash_s1, self._prime1, self.poly1)
-				hash_dict_s2 = self.precompute_hash(k, self.s, self.hash_s2, self._prime2, self.poly2)
-				match1 = self.match_hash(hash_dict_s1, k, self.t, self.hash_t1, self._prime1, self.poly1)
-				match2 = self.match_hash(hash_dict_s2, k, self.t, self.hash_t2, self._prime2, self.poly2)
+				hash_dict_s1 = self.precompute_hash(k, self.s, self.poly1[k], self._prime1)
+				hash_dict_s2 = self.precompute_hash(k, self.s, self.poly2[k], self._prime2)
+				hash_dict_t1 = self.precompute_hash(k, self.t, self.poly1[k], self._prime1)
+				hash_dict_t2 = self.precompute_hash(k, self.t, self.poly2[k], self._prime2)
+				match1 = self.match_hash(hash_dict_s1, hash_dict_t1, k)
+				match2 = self.match_hash(hash_dict_s2, hash_dict_t2, k)
 				ans = self.find(match1, match2)
 				if len(ans) != 0:
 					res[k] = True
@@ -67,42 +65,36 @@ class CommonSubstring:
 					k = (left + right) // 2
 		return Answer(0,0,0)
 	
-	def match_hash(self, hash_dict, k, text, hash_l, _prime, poly):
-		res = []
-		for i in range(0, len(text) - k + 1):
-			tmp = (hash_l[i + k] - poly[k] * hash_l[i]) % _prime
-			try:
-				pos = hash_dict[tmp]
-				if self.flag:
-					res.append(Answer(pos, i, k))
-				else:
-					res.append(Answer(i, pos, k))
-			except KeyError:
-				continue
-		return res
+	def match_hash(self, dict_s, dict_t, k):
+		if self.flag:
+			return [Answer(dict_s[key], dict_t[key], k) for key in list(dict_s.keys() & dict_t.keys())]
+		else:
+			return [Answer(dict_t[key], dict_s[key], k) for key in list(dict_s.keys() & dict_t.keys())]
 
 	def find(self, l1, l2):
 		return [l for l in l1 if l in l2]
 
-	def hash_string(self, text, _prime):
+	def precompute_hash(self, k, text, y, _prime):
 		text_len = len(text)
-		hash_l = [-1] * (text_len+1)
-		hash_l[0] = 0
-		for i in range(1, text_len+1):
-			hash_l[i] = (hash_l[i-1]*self._multiplier+ord(text[i-1]))%_prime
-		return hash_l
-	
-	def precompute_hash(self, k, text, hash_l, _prime, poly):
-		res = dict()
-		for i in range(0, len(text) - k + 1):
-			res.update({((hash_l[i + k] - poly[k] * hash_l[i]) % _prime) : i})
-		return res
+		str_tmp = text[(text_len - k):text_len]
+		hash_l = [-1 for i in range(text_len - k + 1)]
+
+		hash_l[text_len - k] = (self.poly_hash(str_tmp,  _prime), text_len - k)
+		for i in range(text_len - k - 1, -1, -1):
+			hash_l[i] = ((self._multiplier*hash_l[i+1][0]+ord(text[i])-y*ord(text[i+k]))%_prime, i)
+		return dict(hash_l)
 
 	def precompute_poly(self, l, _prime):
 		res = []
 		for i in range(l):
 			res.append(pow(self._multiplier, i, _prime))
 		return res
+	
+	def poly_hash(self, s, _prime):
+		ans = 0
+		for c in reversed(s):
+			ans = (ans * self._multiplier + ord(c)) % _prime # ord() returns Unicode char
+		return ans
 
 if __name__ == '__main__':
 	for line in sys.stdin.readlines():
