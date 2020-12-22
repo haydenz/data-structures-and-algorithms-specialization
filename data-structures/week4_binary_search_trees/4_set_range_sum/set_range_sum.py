@@ -116,7 +116,6 @@ def merge(left, right):
   right.left = left
   update(right)
   return right
-
   
 # Code that uses splay tree to solve the problem
                                     
@@ -124,56 +123,40 @@ root = None
 
 def insert(x):
   global root
-  if root != None:
-    (left, right) = split(root, x)
-    new_vertex = None
-    if right == None or right.key != x:
-      new_vertex = Vertex(x, x, None, None, None)  
-    root = merge(merge(left, new_vertex), right)
-  else:
-    root = Vertex(x, x, None, None, None)
+  (left, right) = split(root, x)
+  new_vertex = None
+  if right == None or right.key != x:
+    new_vertex = Vertex(x, x, None, None, None)  
+  root = merge(merge(left, new_vertex), right)
 
 def erase(x): 
   global root
   # Implement erase yourself
-  next_x, root = find(root, x)
-  if next_x == None:
-    pass
-  elif next_x.key == x:
-    root = merge(root.left, root.right)
-    if root != None:
-      root.parent = None
-  else: # None or Not Found
-    pass
-
-def erase_local(root, x): 
-  next_x, root = find(root, x)
-  if next_x == None:
-    pass
-  elif next_x.key == x:
-    root = merge(root.left, root.right)
-  else: # None or Not Found
-    pass
+  if search(x):
+    (left, middle) = split(root, x)
+    (middle, right) = split(middle, x+1)
+    root = merge(left, right)
 
 def search(x): 
   global root
   # Implement find yourself
-  if root != None:
-    next_x, node = find(root, x)
-    if next_x == None:
-      return False
-    elif next_x.key == x:
-      return True
-  return False
+  next_x, root = find(root, x)
+  if next_x is None or next_x.key != x:
+    return False
+  return True
   
 def sum(fr, to): 
   global root
+  ans = 0
   (left, middle) = split(root, fr)
   (middle, right) = split(middle, to + 1)
-  # ans = 0
-  # Complete the implementation of sum
-  
-  return middle.sum
+  if middle is None:
+    root = merge(left, right)
+  else:
+    ans = middle.sum
+    root = merge(merge(left, middle), right)
+
+  return ans
 
 MODULO = 1000000001
 n = int(stdin.readline())
