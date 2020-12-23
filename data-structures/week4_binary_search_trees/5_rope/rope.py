@@ -1,6 +1,7 @@
 # python3
 # Ordered Splay Tree
 import sys
+from copy import deepcopy
 
 root = None
 class Rope:
@@ -9,16 +10,26 @@ class Rope:
 		for i, char in enumerate(s):
 			insert(char, i+1)
 
-	def __inOrderTraverse(self, node, res):
-		if node != None:
-			self.__inOrderTraverse(node.left, res)
-			res.append(node.key)
-			self.__inOrderTraverse(node.right, res)
+	def __inOrderTraverse(self, node):
+		# non-recursive version
+		current = node
+		stack = []
+		res = []
+		while True:
+			if current is not None:
+				stack.append(current)
+				current = current.left
+			elif(stack):
+				current = stack.pop()
+				res.append(current.key)
+				current = current.right
+			else:
+				break
+		return res
 	
 	def result(self):
-		res = []
-		self.__inOrderTraverse(root, res)
-		return "".join(res)
+		res = self.__inOrderTraverse(root)
+		return ''.join(res)
 
 	def process(self, i, j, k):
 		global root
@@ -36,62 +47,63 @@ class Vertex:
 
 def update(v):
 	if v == None:
-    	return
-  	v.size = 1 + (v.left.size if v.left != None else 0) + (v.right.size if v.right != None else 0)
-  	if v.left != None:
-   		v.left.parent = v
-  	if v.right != None:
-    	v.right.parent = v
+		return
+	v.size = 1 + (v.left.size if v.left != None else 0) + (v.right.size if v.right != None else 0)
+	if v.left != None:
+		v.left.parent = v
+	if v.right != None:
+		v.right.parent = v
 
 def smallRotation(v):
-  	parent = v.parent
-  	if parent == None:
-		  return
-  	grandparent = v.parent.parent
-  	if parent.left == v:
+	parent = v.parent
+	if parent == None:
+		return
+	grandparent = v.parent.parent
+	if parent.left == v:
 		m = v.right
 		v.right = parent
 		parent.left = m
-  	else:
+	else:
 		m = v.left
 		v.left = parent
 		parent.right = m
-  	update(parent)
-  	update(v)
-  	v.parent = grandparent
-  	if grandparent != None:
+	update(parent)
+	update(v)
+	v.parent = grandparent
+	if grandparent != None:
 		if grandparent.left == parent:
 			grandparent.left = v
 		else: 
 			grandparent.right = v
 
 def bigRotation(v):
-  	if v.parent.left == v and v.parent.parent.left == v.parent:
-		# Zig-zig
+	# Zig-zig
+	if v.parent.left == v and v.parent.parent.left == v.parent:
 		smallRotation(v.parent)
 		smallRotation(v)
-  	elif v.parent.right == v and v.parent.parent.right == v.parent:
-		# Zig-zig
+	# Zig-zig
+	elif v.parent.right == v and v.parent.parent.right == v.parent:
 		smallRotation(v.parent)
-		smallRotation(v)    
-  	else: 
-		# Zig-zag
+		smallRotation(v)
+	# Zig-zag
+	else: 
 		smallRotation(v)
 		smallRotation(v)
 
 # Makes splay of the given vertex and makes
 # it the new root.
 def splay(v):
-  	if v == None:
-		  return None
-  	while v.parent != None:
+	if v == None:
+		return None
+	while v.parent != None:
 		if v.parent.parent == None:
 			smallRotation(v)
 			break
-    	bigRotation(v)
-  	return v
+		bigRotation(v)
+	return v
 
 def order_statistic(root, k):
+	# recursive version
 	if root != None:
 		s = root.left.size if root.left != None else 0
 		if k == s + 1:
@@ -103,44 +115,68 @@ def order_statistic(root, k):
 				return order_statistic(root.right, k - s - 1)
 			else:
 				return None
+		root = splay(root)
 	else:
 		return None
 
-def split(root, k):  
-#   (result, root) = find(root, key)
-  	result = order_statistic(root, k)
-  	if result == None:    
+def order_statistic_nonrecursive(node, k):
+	if node != None:
+		while node:
+			s = node.left.size if node.left != None else 0
+			if k == s + 1:
+				return node
+			elif k < s + 1:
+				if node.left:
+					node = node.left
+					continue
+				return None
+			else:
+				if node.right:
+					k = k - s - 1
+					node = node.right
+					continue
+				return None
+		node = splay(node)
+		return node
+	else:
+		return None
+
+def split(root, k): 
+	# result = order_statistic(root, k) 
+	result = order_statistic_nonrecursive(root, k)
+	
+	if result == None:    
 		return (root, None)  
-  	right = splay(result)
-  	left = right.left
-  	right.left = None
-  	if left != None:
-		  left.parent = None
-  	update(left)
-  	update(right)
-  	return (left, right)
+	right = splay(result)
+	left = right.left
+	right.left = None
+	if left != None:
+		left.parent = None
+	update(left)
+	update(right)
+	return (left, right)
   
 def merge(left, right):
-  	if left == None:
+	if left == None:
 		return right
-  	if right == None:
+	if right == None:
 		return left
-  	while right.left != None:
+	while right.left != None:
 		right = right.left
-  	right = splay(right)
-  	right.left = left
-  	update(right)
-  	return right
+	right = splay(right)
+	right.left = left
+	update(right)
+	return right
 
 # Code that uses splay tree to solve the problem
                                 
 def insert(x, k):
-  	global root
-  	(left, right) = split(root, k)
-  	new_vertex = None
-  	if right == None or right.key != x:
-		new_vertex = Vertex(x, 1, None, None, None)  
-  	oot = merge(merge(left, new_vertex), right)
+	global root
+	(left, right) = split(root, k)
+	new_vertex = None
+	if right == None or right.key != x:
+		new_vertex = Vertex(x, 1, None, None, None)
+	root = merge(merge(left, new_vertex), right)
 
 rope = Rope(sys.stdin.readline().strip())
 q = int(sys.stdin.readline())
