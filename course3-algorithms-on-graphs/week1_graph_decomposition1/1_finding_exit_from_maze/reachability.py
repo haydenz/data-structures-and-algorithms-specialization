@@ -2,9 +2,39 @@
 
 import sys
 
-def reach(adj, x, y):
-    #write your code here
-    return 0
+class Vertex:
+    def __init__(self, x):
+        self.key = x
+        self.adj = []
+        self.visited = False
+        self.pre = 0
+        self.post = 0
+
+def reach(vertices, x, y):
+    explore(vertices[x])
+    return '1' if nested(vertices[x], vertices[y]) else '0'
+
+def explore(v):
+    v.visited = True
+    previsit(v)
+    for w in v.adj:
+        if not w.visited:
+            explore(w)
+    postvisit(v)
+
+clock = 1
+def previsit(v):
+    global clock
+    v.pre = clock
+    clock += 1
+
+def postvisit(v):
+    global clock
+    v.post = clock
+    clock += 1
+
+def nested(x, y):
+    return (x.pre < y.pre and x.post > y.post) or (y.pre < x.pre and y.post > x.post)
 
 if __name__ == '__main__':
     input = sys.stdin.read()
@@ -18,4 +48,10 @@ if __name__ == '__main__':
     for (a, b) in edges:
         adj[a - 1].append(b - 1)
         adj[b - 1].append(a - 1)
-    print(reach(adj, x, y))
+    vertices = [None for i in range(n)]
+    for i in range(n):
+        vertices[i] = Vertex(i)
+    for i in range(n):
+        for a in adj[i]:
+            vertices[i].adj.append(vertices[a])
+    print(reach(vertices, x, y))
