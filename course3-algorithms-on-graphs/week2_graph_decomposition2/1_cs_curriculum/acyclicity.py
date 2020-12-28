@@ -47,12 +47,12 @@ class Graph:
         v.stack = False
         return False     
     
-    def FDS(self):
+    def DFS(self):
         for v in self.vertices:
             if not v.visited:
                 if self.explore(v):
-                    return True
-        return False
+                    return 1
+        return 0
     
     def postvisit(self, v):
         v.post = self.clock
@@ -70,24 +70,18 @@ class Graph:
         vertices = [v.key for v in vertices]
         return vertices
 
-def toposort(adj, n):
-    used = [0] * len(adj)
-    order = []
+def acyclic(adj, n):
     #write your code here
     directed_graph = Graph(adj, n)
-    return directed_graph.topological_sort()
+    return directed_graph.DFS()
 
 if __name__ == '__main__':
     input = sys.stdin.read()
     data = list(map(int, input.split()))
     n, m = data[0:2]
-    # n, m = 5, 7
     data = data[2:]
     edges = list(zip(data[0:(2 * m):2], data[1:(2 * m):2]))
-    # edges = [(2,1),(3,2),(3,1),(4,3),(4,1),(5,2),(5,3)]
     adj = [[] for _ in range(n)]
     for (a, b) in edges:
         adj[a - 1].append(b - 1)
-    order = toposort(adj, n)
-    for x in order:
-        print(x + 1, end=' ')
+    print(acyclic(adj, n))
