@@ -9,6 +9,8 @@ class Vertex:
         self.key = key
         self.adj = []
         self.visited = False
+        self.stack = False
+        self.color = -1
 
 class Graph:
     def __init__(self, adj, n):
@@ -25,51 +27,33 @@ class Graph:
             for a in adj[i]:
                 vertices[i].adj.append(vertices[a])
         self.vertices = vertices
-    
+
     def BFS(self, s):
-        color, dist, flag = dict(), dict(), dict()
-        for u in self.vertices:
-            color[u] = None
-            dist[u] = -1
-            flag[u] = True
-        color[s] = 0
-        dist[s] = 0
+        flag = True
+        s.color = 0
         q = queue.Queue(maxsize=n)
         q.put(s)
         while not q.empty():
             u = q.get()
+            if u in u.adj:
+                return False
             for v in u.adj:
-                if dist[v] == -1:
+                if v.color == -1:
                     q.put(v)
-                    dist[v] = dist[u] + 1
-                if color[v] == None:
-                    color[v] = 1 if color[u] == 0 else 0
-                elif color[v] == color[u]:
-                    flag[v] = False
-                else:
-                    pass
-        return dist, flag
+                    v.color = 1 - u.color
+                elif v.color == u.color:
+                    return False
+        return True
 
 def bipartite(adj, n):
     #write your code here
     graph = Graph(adj, n)
-    verteices = graph.vertices
-    v = verteices[0]
-    dist, flag = graph.BFS(v)
 
-    while -1 in dist.values():
-        contradictions = [f for f in flag.values() if f != None]
-        if not all(contradictions):
-            return 0
-        v = list(dist.keys())[list(dist.values()).index(-1)]
-        uncheck = [i for i,_ in enumerate(list(dist.values())) if _ == -1]
-        graph.vertices = [graph.vertices[i] for i in uncheck]
-        graph.n = len(graph.vertices)
-        dist, flag = graph.BFS(v)
-
-    contradictions = [f for f in flag.values() if f != None]
-    if not all(contradictions):
-        return 0
+    for v in graph.vertices:
+        if v.color == -1:
+            flag = graph.BFS(v)
+            if not flag:
+                return 0
     return 1
 
 if __name__ == '__main__':
@@ -84,4 +68,7 @@ if __name__ == '__main__':
     for (a, b) in edges:
         adj[a - 1].append(b - 1)
         adj[b - 1].append(a - 1)
-    print(bipartite(adj, n))
+    if m != 0:
+        print(bipartite(adj, n))
+    else:
+        print(1)
