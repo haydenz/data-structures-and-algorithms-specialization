@@ -20,6 +20,9 @@
       2. Connected components
       3. Previsit and postvisit to record orderings of explore
     - Week 2: Decomposition of Directed Graphs
+      1. Directed acyclic graphs
+      2. Topological sort through reversing postvisit order
+      3. Strongly connected components through sinks (DFS on reversed graphs)
     - Week 3: Paths in Graphs 1
     - Week 4: Paths in Graphs 2
     - Week 5: Minimum Spanning Trees
