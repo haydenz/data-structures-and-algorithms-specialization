@@ -23,7 +23,11 @@
       1. Directed acyclic graphs
       2. Topological sort through reversing postvisit order
       3. Strongly connected components through sinks (DFS on reversed graphs)
-    - Week 3: Paths in Graphs 1
+    - Week 3: Most Direct Route
+      1. Distance layers
+      2. Breadth first search
+      3. Proof of correctness of BFS
+      4. Shortest path tree
     - Week 4: Paths in Graphs 2
     - Week 5: Minimum Spanning Trees
     - Week 6: Advanced Shortest Paths Project (Optional)
