@@ -72,7 +72,7 @@ class DoublyLinkedList():
         return oldHead
 
 def max_sliding_window_naive(sequence, m):
-    maximums = []S
+    maximums = []
     for i in range(len(sequence) - m + 1):
         maximums.append(max(sequence[i:i + m]))
 
