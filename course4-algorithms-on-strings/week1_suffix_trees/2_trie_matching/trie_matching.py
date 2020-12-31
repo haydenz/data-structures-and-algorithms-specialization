@@ -10,7 +10,7 @@ class Node:
 def solve (text, n, patterns):
 	result = []
 
-	// write your code here
+	# write your code here
 
 	return result
 
