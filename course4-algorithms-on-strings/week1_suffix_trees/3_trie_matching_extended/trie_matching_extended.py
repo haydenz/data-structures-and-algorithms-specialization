@@ -6,6 +6,7 @@ NA = -1
 class Node:
 	def __init__ (self):
 		self.next = [NA] * 4
+		self.patternEnd = False
 
 def solve (text, n, patterns):
 	result = []
