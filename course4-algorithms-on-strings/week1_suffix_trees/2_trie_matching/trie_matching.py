@@ -11,7 +11,6 @@ def solve (text, n, patterns):
 	result = []
 
 	# write your code here
-
 	return result
 
 text = sys.stdin.readline ().strip ()
