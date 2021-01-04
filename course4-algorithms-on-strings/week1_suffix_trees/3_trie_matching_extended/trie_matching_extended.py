@@ -9,19 +9,15 @@ class Vertex:
 		self.edges = dict()
 
 def build_trie(patterns):
-	tree = dict()
-    # write your code here
-	label = 0
+	tree, label = dict(), 0
 	root = Vertex(label)
 	for pattern in patterns:
 		curr_node = root
 		pattern_end = False
 		for i in range(len(pattern)):
-			# pattern_end = False
 			curr_symbol = pattern[i]
 			if i == len(pattern) - 1:
 				pattern_end = True
-			
 			try:
 				if tree[curr_node.label][curr_symbol].pattern_end:
 					pattern_end = True
@@ -29,16 +25,8 @@ def build_trie(patterns):
 				pass
 
 			if bool(curr_node.edges) and curr_symbol in curr_node.edges:
-				# if curr_node.label != 0:
-				# 	curr_node.pattern_end = pattern_end
-				# 	tree[curr_node.label][curr_symbol].pattern_end = pattern_end
 				curr_node = curr_node.edges[curr_symbol]
 				curr_node.pattern_end = pattern_end
-				# tree[curr_node.label][curr_symbol].pattern_end = pattern_end
-				# try:
-				# 	curr_node.edges = tree[curr_node.label]
-				# except Exception as e:
-				# 	pass
 			else:
 				label += 1
 				new_node = Vertex(label)
@@ -49,8 +37,7 @@ def build_trie(patterns):
 	return root
 
 def prefix_trie_matching(text, trie):
-	pos, l = 0, []
-	flag = False
+	pos, l, flag = 0, [], False
 	symbol = text[pos]
 	v = trie
 	while True:
@@ -84,7 +71,6 @@ def trie_matching(text, trie):
 
 def solve (text, n, patterns):
 	result = []
-
 	# write your code here
 	trie = build_trie(patterns)
 	result = trie_matching(text, trie)
