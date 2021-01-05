@@ -16,10 +16,10 @@ class SuffixTree:
 		""" Make suffix tree, without suffix links, 
 		from s in quadratic time and linear space """
 		self.root = self.Vertex(None)
-		self.root.pos = (0, 0)
+		self.root.pos = (0, len(text))
 		self.text = text
 		all_text = self.Vertex(text)
-		all_text.pos = (0, 0)
+		all_text.pos = (0, len(text))
 		if text[0] != SYMBOL1:
 			all_text.text1 = True
 		self.root.edges[text[0]] =  all_text# trie for just longest suffix
@@ -47,19 +47,19 @@ class SuffixTree:
 						cExist, cNew = label[k-j], text[k]
                         # create “mid”: new node bisecting edge
 						mid = self.Vertex(label[:k-j])
-						mid.pos = child.pos
+						mid.pos = (child.pos[0], len(label[:k-j]))
 						mid.text1 = child.text1
 					
 						tmp = self.Vertex(text[k:])
 						tmp.text1 = True if k <= len_p else False
-						tmp.pos = (k, child.pos[1])
+						tmp.pos = (k, len(text[k:]))
 						
 						mid.edges[cNew] = tmp
                         # original child becomes mid’s child
 						mid.edges[cExist] = child
                         # original child’s label is curtailed
 						child.label = label[k-j:]
-						child.pos = (child.pos[0]+k-j, child.pos[1])
+						child.pos = (child.pos[0]+k-j, len(label[k-j:]))
 						child.text1 = True if child.pos[0] <= len_p else False
 						cur_node.edges[text[j]] = mid
 				else:
@@ -69,10 +69,7 @@ class SuffixTree:
 						new_node.text1 = True
 					else:
 						cur_node.text1 = False
-					if cur_node.pos[1] == 0:
-						new_node.pos = (j, j)
-					else:
-						new_node.pos = (j, cur_node.pos[1])
+					new_node.pos = (j, len(text[j:]))
 					cur_node.edges[text[j]] = new_node
 
 	def max_label(self):
@@ -87,14 +84,11 @@ class SuffixTree:
 			elif stack:
 				current = stack.pop()
 				if current.text1:
-					end, start = current.pos
-					if bool(current.edges):
-						res.append(self.text[start:end+1])
+					pos, length = current.pos
+					if current.label[0] == SYMBOL1:
+						res.append(self.text[pos:pos+1])
 					else:
-						if current.label[0] == SYMBOL1:
-							pass
-						else:
-							res.append(self.text[start:end+1])
+						res.append(self.text[pos:pos+1])
 			else:
 				break
 		return min(res, key=len)	
