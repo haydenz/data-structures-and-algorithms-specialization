@@ -16,11 +16,12 @@ class SuffixTree:
 		""" Make suffix tree, without suffix links, 
 		from s in quadratic time and linear space """
 		self.root = self.Vertex(None)
-		self.root.pos = (0, len(text))
+		self.root.pos = (0, 0, len(text))
 		self.text = text
+		self.len_p = len_p
 		all_text = self.Vertex(text)
-		all_text.pos = (0, len(text))
-		if text[0] != SYMBOL1:
+		all_text.pos = (0, 0, len(text))
+		if len_p != 0:
 			all_text.text1 = True
 		self.root.edges[text[0]] =  all_text# trie for just longest suffix
         # Add rest suffixes, from longest to shortest
@@ -47,33 +48,58 @@ class SuffixTree:
 						cExist, cNew = label[k-j], text[k]
                         # create “mid”: new node bisecting edge
 						mid = self.Vertex(label[:k-j])
-						mid.pos = (child.pos[0], len(label[:k-j]))
-						mid.text1 = child.text1
+						mid.pos = (child.pos[0], child.pos[1], len(label[:k-j])) #mid.text1 = True if child.pos[1] <= len_p else False
 					
 						tmp = self.Vertex(text[k:])
+						tmp.pos = (i, k, len(text[k:]))
 						tmp.text1 = True if k <= len_p else False
-						tmp.pos = (k, len(text[k:]))
 						
 						mid.edges[cNew] = tmp
-                        # original child becomes mid’s child
-						mid.edges[cExist] = child
+						# original child becomes mid’s child
+						
                         # original child’s label is curtailed
 						child.label = label[k-j:]
-						child.pos = (child.pos[0]+k-j, len(label[k-j:]))
-						child.text1 = True if child.pos[0] <= len_p else False
+						child.pos = (child.pos[0], child.pos[1]+k-j, len(label[k-j:]))
+						if bool(child.edges):
+							child.text1 = all([(child.edges[n]).text1 for n in child.edges])
+						else:
+							child.text1 = True if child.pos[1] <= len_p else False
+						mid.edges[cExist] = child
+						
+						if bool(mid.edges):
+							mid.text1 = all([(mid.edges[n]).text1 for n in mid.edges])
+						else:
+							mid.text1 = True if mid.pos[1] <= len_p else False
 						cur_node.edges[text[j]] = mid
+						cur_node.text1 = all([(cur_node.edges[n]).text1 for n in cur_node.edges])
 				else:
 					# Fell off tree at a node: make new edge hanging off it
 					new_node = self.Vertex(text[j:])
-					if j <= len_p:
-						new_node.text1 = True
-					else:
-						cur_node.text1 = False
-					new_node.pos = (j, len(text[j:]))
+					new_node.pos = (i, j, len(text[j:]))
+					new_node.text1 = True if j <= len_p else False
+					# cur_node.text1 = all([(cur_node.edges[n]).text1 for n in cur_node.edges])
 					cur_node.edges[text[j]] = new_node
+
+	def mark_text1(self, node):
+		node.text1 = True
+		res = True
+		if node.pos[1] > self.len_p:
+			node.text1 = False
+			res = False
+
+		for k in node.edges:
+			child = node.edges[k]
+			res_tmp = self.mark_text1(child)
+			child.text1 = res_tmp
+			if res_tmp == False:
+				res = False
+		
+		node.text1 = res
+		return res
 
 	def max_label(self):
 		current = self.root
+		# self.mark_text1(current)
 		stack, res = [], []
 		while True:
 			if bool(current.edges):
@@ -83,12 +109,17 @@ class SuffixTree:
 				del current.edges[k]
 			elif stack:
 				current = stack.pop()
+				init, pos, length = current.pos
 				if current.text1:
-					pos, length = current.pos
 					if current.label[0] == SYMBOL1:
-						res.append(self.text[pos:pos+1])
+						pass
+						# if pos-init > 1:
+						# 	res.append(self.text[init:pos])
+						# tmp = self.text[init:pos]
+						# if tmp != '':
+						# 	res.append(tmp)
 					else:
-						res.append(self.text[pos:pos+1])
+						res.append(self.text[init:pos+1])
 			else:
 				break
 		return min(res, key=len)	
