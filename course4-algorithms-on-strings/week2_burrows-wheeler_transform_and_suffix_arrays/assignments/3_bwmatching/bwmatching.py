@@ -39,29 +39,6 @@ def BWMatching(pattern, bwt, last_to_first):
 ######### Method II: BetterBWMatching #########
 ###############################################
 
-# def PreprocessBWT(bwt):
-#   """
-#   Preprocess the Burrows-Wheeler Transform bwt of some text
-#   and compute as a result:
-#     * starts - for each character C in bwt, starts[C] is the first position 
-#         of this character in the sorted array of 
-#         all characters of the text.
-#     * occ_count_before - for each character C in bwt and each position P in bwt,
-#         occ_count_before[C][P] is the number of occurrences of character C in bwt
-#         from position 0 to position P inclusive.
-#   """
-#   # Implement this function yourself
-#   sorted_bwt = sorted([b for b in bwt])
-#   unq_bwt = list(set(bwt))
-#   starts, occ_counts_before = dict(), dict()
-#   for unq in unq_bwt:
-#     starts.update({unq: sorted_bwt.index(unq)})
-#     occ_counts_before.update({unq: [0]})
-#     for i, t in enumerate(bwt): 
-#       occ_counts_before[unq].append(bwt[0:i+1].count(unq))
-#   del sorted_bwt
-#   return starts, occ_counts_before
-
 def PreprocessBWT(bwt):
   """
   Preprocess the Burrows-Wheeler Transform bwt of some text
@@ -74,48 +51,37 @@ def PreprocessBWT(bwt):
         from position 0 to position P inclusive.
   """
   # Implement this function yourself
-  starts = {}
-  occ_counts_before = {}
-  chars = set(bwt)
-  first_col = sorted(list(bwt))
-  for c in chars:
-    starts[c] = first_col.index(c)
-  #print (starts)
-  for i in range(len(bwt)+1):
-    if i == 0:
-      for c in chars:
-        occ_counts_before[c] = [0]
-    else:
-      for c in chars:
-        '''if not c in occ_counts_before:
-          if bwt[i] == c:
-            occ_counts_before[c] = [1]
-          else:
-            occ_counts_before[c] = [0]'''
-        #else:
-        if bwt[i-1] == c:
-          occ_counts_before[c].append(occ_counts_before[c][-1] + 1)
-        else:
-          occ_counts_before[c].append(occ_counts_before[c][-1])
-  #print (occ_counts_before)
-  return starts, occ_counts_before
+  sorted_bwt = sorted(bwt)
+  bwt_len = len(bwt)
+  unq_bwt = list(set(bwt))
+  starts, occ_counts_before = dict(), dict()
+  for unq in unq_bwt:
+    starts.update({unq: sorted_bwt.index(unq)})
+    occ_counts_before.update({unq: [0]})
+  for i in range(0, bwt_len):
+    for unq in unq_bwt:
+      if bwt[i] == unq:
+        occ_counts_before[unq].append(occ_counts_before[unq][i] + 1)
+      else:
+        occ_counts_before[unq].append(occ_counts_before[unq][i])
 
-def CountOccurrences(pattern, bwt, starts, occ_counts_before):
+  del sorted_bwt, bwt
+  return starts, occ_counts_before, bwt_len
+
+def CountOccurrences(pattern, bwt_len, starts, occ_counts_before):
   """
   Compute the number of occurrences of string pattern in the text
   given only Burrows-Wheeler Transform bwt of the text and additional
   information we get from the preprocessing stage - starts and occ_counts_before.
   """
   # Implement this function yourself
-  starts, occ_counts_before = PreprocessBWT(bwt)
-
-  top, bottom = 0, len(bwt) - 1
+  top, bottom = 0, bwt_len - 1
   while top <= bottom:
     if len(pattern) > 0:
       symbol = pattern[-1]
       pattern = pattern[:-1]
 
-      if symbol in bwt[top:bottom+1]:
+      if (symbol in occ_counts_before) and (occ_counts_before[symbol][bottom+1] - occ_counts_before[symbol][top] > 0):
         top = starts[symbol] + occ_counts_before[symbol][top] 
         bottom = starts[symbol] + occ_counts_before[symbol][bottom+1]-1
       else:
@@ -134,12 +100,15 @@ if __name__ == '__main__':
   # in the text instead of O(|pattern| + |text|).  
 
 
-  starts, occ_counts_before = PreprocessBWT(bwt)
+  # Method I
   # last_to_first = LastToFirst(bwt)
+  # Method II
+  starts, occ_counts_before, bwt_len = PreprocessBWT(bwt)
+
   res = []
   for p in patterns:
     # Method II
-    res.append(CountOccurrences(p, bwt, starts, occ_counts_before))
+    res.append(CountOccurrences(p, bwt_len, starts, occ_counts_before))
     # Method I
     # res.append(BWMatching(p, bwt, last_to_first))
   print(' '.join(map(str, res)))
